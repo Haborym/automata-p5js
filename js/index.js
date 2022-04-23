@@ -7,6 +7,8 @@ let isAltPressed = false;
 
 let lastStorage = null;
 
+let needUpdate = false;
+
 /**
  * 
  * 0 : Mode ajout de noeud + déplacement des noeuds
@@ -84,6 +86,11 @@ function draw() {
         if(Object.keys(elt.action).length === 0) {continue;}
         nbLine = drawLinesAndCurves(k1, elt, nbLine);
     }
+
+    if(needUpdate) {
+        needUpdate = false;
+        noLoop();
+    }
 }
 
 function drawLinesAndCurves(k1, elt, nbLine) {
@@ -158,7 +165,7 @@ function drawText() {
         default:
     }
     text(`Mode ${txt_mode}`, 5, window.innerHeight - 100);
-    // text(`Mode = ${mode}`, 5, window.innerHeight - 50);
+    text(`${isLooping()?'':'No'} Looping`, 5, window.innerHeight - 50); 
 }
 
 function drawTransition(x1, y1, r1, x2, y2, r2, instruction) {
@@ -196,6 +203,9 @@ function drawTransition(x1, y1, r1, x2, y2, r2, instruction) {
 
     drawTriangle(point1, point2);
     drawInstruction(point1, point2, instruction);
+
+    needUpdate = true;
+    loop();
 }
 
 // draw an arrow for a vector at a given base position
@@ -305,9 +315,13 @@ function mouseClicked() {
         }
         selectedNode = null;
     }
+
+    needUpdate = true;
+    loop();
 }
 
 function mouseDragged() {
+    loop();
     const key = verificationIntersection(mouseX, mouseY);
     if(mode === 0 && key !== null && selectedNode !== null && key === selectedNode) {
         if(display === 1) {
@@ -325,6 +339,10 @@ function mouseDragged() {
             createVector(mouseX + 25, mouseY - 50),
         ];
     }
+}
+
+function mouseReleased() {
+    noLoop();
 }
 
 function keyPressed() {
@@ -350,6 +368,9 @@ function keyPressed() {
         console.log('saving');
         saveAction();
     }
+
+    needUpdate = true;
+    loop();
 }
 
 function keyReleased() {
