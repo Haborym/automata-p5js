@@ -329,6 +329,54 @@ function mouseDragged() {
             mouseY = Math.ceil(mouseY / 10) * 10;
         }
 
+        let snappingPoints = [null, null];
+        for (const [snappingKey, obj] of Object.entries(transitionTable)) {
+            if(snappingKey === selectedNode) {continue;}
+            
+            const stateOrientation = getOrientation(mouseX, mouseY, obj);
+
+            switch(stateOrientation) {
+                case 0:
+                    obj.geometry.g_color = '#ffffff';
+                    break;
+                case 1:
+                    if(snappingPoints[0] === null) {
+                        snappingPoints[0] = snappingKey;
+                    } else if(
+                        getDistance(mouseX, mouseY, obj.geometry.g_x, obj.geometry.g_y) <
+                        getDistance(mouseX, mouseY, transitionTable[snappingPoints[0]].geometry.g_x, transitionTable[snappingPoints[0]].geometry.g_y)
+                    ) {
+                        snappingPoints[0] = snappingKey;
+                    }
+                    // obj.geometry.g_color = '#00ff00';
+                    break;
+                case 2:
+                    if(snappingPoints[1] === null) {
+                        snappingPoints[1] = snappingKey;
+                    } else if(
+                        getDistance(mouseX, mouseY, obj.geometry.g_x, obj.geometry.g_y) <
+                        getDistance(mouseX, mouseY, transitionTable[snappingPoints[1]].geometry.g_x, transitionTable[snappingPoints[1]].geometry.g_y)
+                    ) {
+                        snappingPoints[1] = snappingKey;
+                    }
+                    // obj.geometry.g_color = '#0000ff';
+                    break;
+                case 3:
+                    // obj.geometry.g_color = '#00ffff';
+                    break;
+            }  
+        }
+
+        console.log(snappingPoints);
+
+        if(snappingPoints[0] !== null) {
+            transitionTable[snappingPoints[0]].geometry.g_color = '#00ff00';
+        }
+        if(snappingPoints[1] !== null) {
+            transitionTable[snappingPoints[1]].geometry.g_color = '#0000ff';
+        }
+
+        // normal detection
         transitionTable[key].geometry.g_x = mouseX>350?mouseX:350;
         transitionTable[key].geometry.g_y = mouseY;
         transitionTable[key].geometry.g_keypoints = [];
@@ -339,6 +387,43 @@ function mouseDragged() {
             createVector(mouseX + 25, mouseY - 50),
         ];
     }
+}
+
+function getOrientation(mX, mY, obj) {
+    let orientation = 0;
+    // Test on X
+    if(
+        (
+            mX - 25 >= obj.geometry.g_x - 25 &&
+            mX - 25 <= obj.geometry.g_x + 25
+        ) ||
+        (
+            mX + 25 >= obj.geometry.g_x - 25 &&
+            mX + 25 <= obj.geometry.g_x + 25
+        )
+    ) {
+        orientation = 1;
+    }
+
+    // Test on Y
+    if(
+        (
+            mY - 25 >= obj.geometry.g_y - 25 &&
+            mY - 25 <= obj.geometry.g_y + 25
+        ) ||
+        (
+            mY + 25 >= obj.geometry.g_y - 25 &&
+            mY + 25 <= obj.geometry.g_y + 25
+        )
+    ) {
+        orientation = orientation + 2;
+    }
+
+    return orientation;
+}
+
+function getDistance(mX, mY, oX, oY) {
+    return Math.sqrt((mX-oX)**2 +(mY-oY)**2);
 }
 
 function mouseReleased() {
